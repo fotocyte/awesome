@@ -16,6 +16,12 @@ local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup")
 -- menu stuff
 local freedesktop = require("freedesktop")
+-- get the widgets directory
+local volume = require("widgets/awesome-wm-widgets/volumearc-widget/volumearc")
+local battery = require("widgets/awesome-wm-widgets/batteryarc-widget/batteryarc")
+local weather = require("widgets/awesome-wm-widgets/weather-widget/weather")
+
+
 -- Enable hotkeys help widget for VIM and other apps
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
@@ -77,8 +83,6 @@ awful.layout.layouts = {
     -- awful.layout.suit.spiral,
     -- awful.layout.suit.spiral.dwindle,
     -- awful.layout.suit.max,
-    -- awful.layout.suit.max.fullscreen,
-    -- awful.layout.suit.magnifier,
     -- awful.layout.suit.corner.nw,
     -- awful.layout.suit.corner.ne,
     -- awful.layout.suit.corner.sw,
@@ -105,8 +109,7 @@ mymainmenu = freedesktop.menu.build({
         -- other triads can be put here
     },
     after = {
-        { "Awesome", myawesomemenu, "/usr/share/awesome/icons/awesome32.png" },
-        { "Exit", myexitmenu, menubar.utils.lookup_icon("system-shutdown") },
+        { "Awesome", myawesomemenu, "/usr/share/awesome/icons/awesome32.png" }
         -- other triads can be put here
     }
 })
@@ -227,8 +230,28 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
+            --mykeyboardlayout,
             wibox.widget.systray(),
+            weather({
+                api_key='da933a58188569140698b515508c1723',
+                coordinates = {33.45, -112.07},
+                time_format_12h = true,
+                units = 'imperial',
+                both_units_widget = false,
+                font_name = 'Carter One',
+                --icons = 'VitalyGorbachev',
+                show_hourly_forecast = true,
+                show_daily_forecast = true,
+            }),
+            wibox.widget {
+                orientation = 'vertical',
+                forced_width = 5,
+                widget = wibox.widget.separator,
+            },
+            volume(),
+            battery({
+                show_current_level = true,
+            }),
             mytextclock,
             s.mylayoutbox,
         },
@@ -344,6 +367,14 @@ globalkeys = gears.table.join(
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end,
               {description = "show the menubar", group = "launcher"})
+    -- Audio
+    -- awful.key({ }, "XF86AudioRaiseVolume", APW.Up),
+    -- awful.key({ }, "XF86AudioLowerVolume", APW.Down),
+    -- awful.key({ }, "XF86AudioMute",  APW.ToggleMute)
+    -- Microphone
+    --awful.key({"Shift"}, "XF86AudioRaiseVolume", pulse.volume_up_mic),
+    --awful.key({"Shift"}, "XF86AudioLowerVolume", pulse.volume_down_mic),
+    --awful.key({ }, "XF86MicMute",  pulse.toggle_muted_mic)
 )
 
 clientkeys = gears.table.join(
@@ -500,6 +531,8 @@ awful.rules.rules = {
         },
         role = {
           "AlarmWindow",  -- Thunderbird's calendar.
+          "ConfigManager",  -- Thunderbird's about:config.
+          "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
           "ConfigManager",  -- Thunderbird's about:config.
           "pop-up",       -- e.g. Google Chrome's (detached) Developer Tools.
         }
